@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  admin:
+    container_name: admin_api_${NODE_ENV}
+    image: admin_api_${NODE_ENV}
+    build:
+      context: ./admin
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env
+    entrypoint: ["npm", "run", "start:${NODE_ENV}"]
+    ports:
+      - 8000:3000
+    depends_on:
+      - postgres
+    links:
+      - postgres:postgres
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - nesjs-network
+
+  postgres:
+    container_name: postgres
+    image: postgres:alpine
+    networks:
+      - nesjs-network
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB="${POSTGRES_DB_PREFIX}_${POSTGRES_DB_NAME}"
+      - POSTGRES_DB=crudjs
+
+networks:
+  nesjs-network:
