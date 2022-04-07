@@ -1,17 +1,23 @@
-# Image source
-FROM node:10-alpine
+FROM node:14-alpine AS builder
 
-# Docker working directory
+# Create app directory
 WORKDIR /app
 
-# Copying file into APP directory of docker
-COPY ./package.json /app
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+COPY package*.json ./
 
-# Then install the NPM module
+# Install app dependencies
 RUN npm install
 
-# Copy current directory to APP folder
-COPY . /app/
+COPY . .
+
+RUN npm run build
+
+FROM node:14-alpine
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
 
 EXPOSE 3000
-CMD ["npm", "run", "start:dev"]
+CMD [ "npm", "run", "start:prod" ]
